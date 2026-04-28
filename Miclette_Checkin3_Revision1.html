@@ -1,0 +1,231 @@
+<html lang eng>
+
+<head>
+<meta charset="utf-8" />
+<title>Miclette Check-In 3</title>
+
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"> </script>
+
+<style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+     
+    
+    .legend {
+        position: absolute;
+        bottom: 30px;
+        left: 30px;
+        background: white;
+        padding: 10px;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        border-radius: 5px;
+        z-index: 1;
+        }
+
+    .legend-circle {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background: #3457d5;
+        border-radius: 50%;
+        border: 1px solid white;
+        margin-right: 6px;
+}
+    
+    .legend-line {
+        display: inline-block;
+        width: 24px;
+        height: 3px;
+        background: #7b0f48;
+        margin-right: 6px;
+        vertical-align: middle;
+}
+
+.offshore {
+    background: #3457d5;
+}
+
+.onshore {
+    background: #7b0f48;
+}
+.legend-arrow {
+    display: inline-block;
+    width: 24px;
+    margin-right: 6px;
+    font-size: 22px;
+    font-weight: bold;
+    text-shadow:
+        -1px -1px 0 #000,
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+}
+
+.arrow-up {
+    color: #3963fb;
+}
+
+.arrow-down {
+    color: #b6146a;
+}
+</style>
+
+</head>
+
+<body>
+<div id="map"></div>
+
+<div class="legend">
+    
+    <div>
+        <span class="legend-line offshore"></span>
+        Offshore Faults
+    </div>
+
+    <div>
+        <span class="legend-line onshore"></span>
+        Onshore Faults
+    </div>
+
+    <div>
+        <span class="legend-arrow arrow-up">↖</span>
+        Pacific Plate Motion
+    </div>
+
+    <div>
+        <span class="legend-arrow arrow-down">↘</span>
+        North American Plate Motion
+    </div>
+
+</div>
+    
+<script>
+
+    //Put your mapbox access token here
+    mapboxgl.accessToken = 'pk.eyJ1IjoiaWtlbTk5IiwiYSI6ImNtbHNjMTI4eTA0cDQzZ29tdDIyaHpmOTgifQ.qrMNz0gdBNLxfVnnFIFO4g';  
+
+        // Load a new map in the 'map' HTML div
+        var map = new mapboxgl.Map({
+            container: 'map', // container id
+            style: 'mapbox://styles/ikem99/cmo0a8tkn005801rg7jgq4m6m', // Put your mapbox style ID here
+            center: [-118.2437 , 34.0522], // starting position [lng, lat]
+            zoom: 6 // starting zoom
+        });
+
+
+        // When loading the map
+        map.on('load', function() {
+
+
+            // Add fault data layers
+            map.addLayer({
+                'id':'offshore_faults',
+                'type':'line',
+                'source':{
+                    type:'vector',
+                    url:'ikem99.17sep66n' // After "mapbox://" paste your Mapbox tileset ID
+                },
+                'source-layer':'wgsqfaults-offshore-california-03-22-2020', // name of tilesets
+                'layout':{
+                    'visibility': 'visible'
+                },
+                'paint': {
+                    'line-color':'#86b049',
+                    'line-opacity':1,       //points on the graph
+                    'line-width':1,
+
+                }
+            });
+            
+            
+        map.addSource('plate_arrows', {
+    type: 'geojson',
+    data: {
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [-123.0, 39.0]
+                },
+                properties: { arrow: '↘', group: 'down' }
+            },
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [-121.0, 36.5]
+                },
+                properties: { arrow: '↘', group: 'down' }
+            },
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [-117.5, 34.0]
+                },
+                properties: { arrow: '↘', group: 'down' }
+            },
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [-122.5, 36.5]
+                },
+                properties: { arrow: '↖', group: 'up' }
+            },
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [-121, 34]
+                },
+                properties: { arrow: '↖', group: 'up' }
+            },
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [-124, 39]
+                },
+                properties: { arrow: '↖', group: 'up' }
+            }
+        ]
+    }
+});
+
+map.addLayer({
+    id: 'plate_arrows_layer',
+    type: 'symbol',
+    source: 'plate_arrows',
+    layout: {
+        'text-field': ['get', 'arrow'],
+        'text-size': 48,
+        'text-allow-overlap': true
+    },
+    paint: {
+    'text-color': [
+        'match',
+        ['get', 'group'],
+        'up', '#3963fb',      // blue for ↖
+        'down', '#b6146a',    // red for ↘
+        '#000000'
+    ],
+    'text-halo-color': '#000000',
+    'text-halo-width': 3,
+    'text-halo-blur': 0
+}
+});
+
+        })
+
+            
+    
+</script>
+
+</body>
+</html>
